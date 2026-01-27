@@ -3,6 +3,7 @@ import Auth from "./pages/Auth"
 import Chat from "./pages/Chat";
 import ProtectedRoute from "./components/ProtectedRoute"; // Import your guard
 import Home from "./pages/Home";
+import FindUsers from "./pages/FindUsers";
 
 function App() {
   return (
@@ -16,6 +17,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Chat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/find"
+          element={
+            <ProtectedRoute>
+              <FindUsers />
             </ProtectedRoute>
           }
         />

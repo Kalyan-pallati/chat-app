@@ -35,7 +35,7 @@ export default function Auth() {
                 throw new Error(data.detail || "Authentication Failed");
             }
             login(data.access_token);
-            navigate("/chat");
+            navigate("/find");
         }
         catch(err: any) {
             setError(err)

@@ -8,3 +8,4 @@ class User(SQLModel, table=True):
     email: str = Field(index=True, unique=True)
     hashed_password: str
     last_seen: datetime = Field(default_factory=datetime.utcnow)
+    allow_stranger_dms: bool = Field(default=False)

@@ -1,11 +1,10 @@
-from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
+from pydantic import BaseModel
 from app.db.session import get_session
 from app.models.user import User
 from app.core.security import hash_password, verify_password, create_access_token
 
-#All of the required models are specified here
 class UserCreate(BaseModel):
     username: str
     email: str
@@ -19,7 +18,6 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
-#Creating a router for the Authentication Routes
 router = APIRouter()
 
 @router.post("/signup", response_model=Token)
@@ -29,7 +27,7 @@ def signup(user: UserCreate, session: Session = Depends(get_session)):
     ).first()
 
     if existing:
-        raise HTTPException(status_code=400, details="Username Already Taken")
+        raise HTTPException(status_code=400, detail="Username Already Taken")
     
     new_user = User(
         username=user.username,
@@ -40,7 +38,8 @@ def signup(user: UserCreate, session: Session = Depends(get_session)):
     session.commit()
     session.refresh(new_user)
     
-    token = create_access_token({"sub": str(new_user.id)})
+    # FIX: Use username here so get_current_user can find it later
+    token = create_access_token({"sub": new_user.username})
     return {"access_token": token}
 
 @router.post("/login", response_model=Token)
@@ -52,5 +51,5 @@ def login(user: UserLogin, session: Session = Depends(get_session)):
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid Credentials")
     
-    token = create_access_token({"sub": str(db_user.id)})
+    token = create_access_token({"sub": db_user.username})
     return {"access_token": token}
