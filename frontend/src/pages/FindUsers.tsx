@@ -62,7 +62,6 @@ export default function FindUsers() {
           <Search className="w-6 h-6 text-emerald-400" /> Find Friends
         </h1>
 
-        {/* Search Bar */}
         <form onSubmit={searchUser} className="flex gap-2 mb-8">
           <input
             type="text"
@@ -80,14 +79,12 @@ export default function FindUsers() {
           </button>
         </form>
 
-        {/* Error Message */}
         {error && (
           <div className="bg-red-500/10 text-red-400 p-3 rounded border border-red-500/20 text-center">
             {error}
           </div>
         )}
 
-        {/* Result Card */}
         {result && (
           <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-xl flex items-center justify-between">
             <div>
@@ -95,31 +92,26 @@ export default function FindUsers() {
               <p className="text-slate-400 text-sm">{result.email}</p>
             </div>
 
-            {/* DYNAMIC BUTTON LOGIC */}
             <div className="flex gap-2">
               
-              {/* Case 1: Already Friends -> Show Chat Button */}
               {result.friendship_status === "friends" && (
                 <button className="bg-blue-600 p-2 rounded hover:bg-blue-500" title="Chat">
                   <MessageSquare className="w-5 h-5" />
                 </button>
               )}
 
-              {/* Case 2: Request Pending (Sent) */}
               {result.friendship_status === "request_sent" && (
                 <span className="bg-slate-700 text-slate-400 px-3 py-2 rounded text-sm font-medium">
                   Request Sent
                 </span>
               )}
 
-              {/* Case 3: Request Pending (Received) */}
               {result.friendship_status === "request_received" && (
                 <span className="bg-emerald-900 text-emerald-400 px-3 py-2 rounded text-sm font-medium border border-emerald-500/50">
                   Check Inbox
                 </span>
               )}
 
-              {/* Case 4: Stranger -> Add Friend Button */}
               {result.friendship_status === "stranger" && (
                 <button 
                   onClick={sendRequest}
@@ -131,7 +123,6 @@ export default function FindUsers() {
                 </button>
               )}
 
-              {/* Case 5: Stranger with Open DMs -> Show Chat Button TOO */}
               {result.friendship_status === "stranger" && result.allow_stranger_dms && (
                  <button className="bg-blue-600 p-2 rounded hover:bg-blue-500" title="Message Request">
                    <MessageSquare className="w-5 h-5" />
