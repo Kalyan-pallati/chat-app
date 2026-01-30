@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlmodel import Session, select, or_
+from typing import List
 
 from app.db.session import get_session
 from app.models.user import User
@@ -7,6 +9,12 @@ from app.models.friend import FriendRequest, FriendStatus
 from app.core.security import get_current_user
 
 router = APIRouter()
+
+class FriendRequestWithSender(BaseModel):
+    id: int
+    sender_id: int
+    sender_username: str
+    status: str
 
 @router.post("/request/{username}")
 def send_friend_request(username: str, 
@@ -26,7 +34,7 @@ def send_friend_request(username: str,
     )).first()
 
     if existing_request:
-        if existing_request.status == FriendStatus.ACCEPETED:
+        if existing_request.status == FriendStatus.ACCEPTED:
             raise HTTPException(status_code=400, detail="You are already Friends.")
         raise HTTPException(status_code=400, detail="Your Friend Request is Pending")
     
@@ -39,17 +47,29 @@ def send_friend_request(username: str,
     session.commit()
     return {"message": "Friend Request Sent"}
 
-@router.get("/requests/pending")
+@router.get("/requests/pending", response_model=List[FriendRequestWithSender])
 def get_pending_requests(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    statement = select(FriendRequest).where(
+    statement = select(FriendRequest, User).join(User, FriendRequest.sender_id == User.id).where(
         (FriendRequest.receiver_id == current_user.id) & 
         (FriendRequest.status == FriendStatus.PENDING)
     )
     requests = session.exec(statement).all()
-    return requests
+
+    response_data = []
+    for request, sender in requests:
+        response_data.append(
+            FriendRequestWithSender(
+                id=request.id,
+                sender_id= sender.id,
+                sender_username=sender.username,
+                status=request.status
+            )
+        )
+
+    return response_data
 
 @router.post("/accept/{request_id}")
 def accept_friend_request(

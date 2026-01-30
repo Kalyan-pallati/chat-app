@@ -4,6 +4,7 @@ import Chat from "./pages/Chat";
 import ProtectedRoute from "./components/ProtectedRoute"; // Import your guard
 import Home from "./pages/Home";
 import FindUsers from "./pages/FindUsers";
+import Requests from "./pages/Requests";
 
 function App() {
   return (
@@ -28,7 +29,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/requests"
+          element={
+            <ProtectedRoute>
+              <Requests />
+            </ProtectedRoute>
+          }
+        />
         {/* Redirect unknown pages to login */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>

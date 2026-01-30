@@ -5,7 +5,7 @@ from enum import Enum
 class FriendStatus(str, Enum):
     PENDING = "pending"
     ACCEPTED = "accepted"
-    REJECRED = "rejected"
+    REJECTED = "rejected"
 
 class FriendRequest(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
