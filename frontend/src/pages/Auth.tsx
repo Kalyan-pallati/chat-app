@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react"; // 👈 Added useEffect
+import { useState, useEffect } from "react"; // 
 import { useNavigate } from "react-router-dom";
 import { useAuthStore, type AuthState } from "../store/authStore";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Upload, User } from "lucide-react";
+import ImageCropper from "../components/ImageCropper";
 
 export default function Auth() {
   const login = useAuthStore((state: AuthState) => state.login);
@@ -10,65 +11,130 @@ export default function Auth() {
 
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [gender, setGender] = useState("other");
+
+  const [selectedFile, setSelectedFile] = useState<Blob | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
 
-  // 👈 NEW: Check for existing session on mount
+
   useEffect(() => {
     if (token) {
       navigate("/find");
     }
   }, [token, navigate]);
 
+  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>)=>{
+    if(e.target.files && e.target.files.length > 0) {
+        const file = e.target.files[0];
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+        setShowCropper(true);
+        e.target.value= "";
+    }
+  };
+
+  const onCropFinished = (blob : Blob) => {
+    setSelectedFile(blob);
+    setShowCropper(false);
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    const endpoint = isLogin ? "/auth/login" : "/auth/signup";
-    const payload = isLogin
-      ? { username, password }
-      : { username, email, password };
-
     try {
-      const res = await fetch(`http://localhost:8000${endpoint}`, {
-        body: JSON.stringify(payload),
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await res.json();
+      let res;
+      
+      if (isLogin) {
+        res = await fetch("http://localhost:8000/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+      } else {
+        
+        const formData = new FormData();
+        formData.append("username", username);
+        formData.append("email", email);
+        formData.append("password", password);
+        formData.append("full_name", fullName);
+        formData.append("gender", gender);
+        if (selectedFile) {
+          formData.append("file", selectedFile, "profile.jpg"); 
+        }
 
-      if (!res.ok) {
-        throw new Error(data.detail || "Authentication Failed");
+        res = await fetch("http://localhost:8000/auth/signup", {
+          method: "POST",
+          body: formData, 
+        });
       }
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Authentication Failed");
+
       login(data.access_token);
       navigate("/find");
     } catch (err: any) {
-      setError(err.message || "Something went wrong"); // Fixed error type handling
+      setError(err.message || "Something went wrong");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
-      <div className="bg-slate-800 p-8 rounded-lg shadow-xl w-80 border border-slate-700">
+    <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-4">
+      
+      {showCropper && previewUrl && (
+        <ImageCropper
+          imageSrc={previewUrl}
+          onCropComplete={onCropFinished}
+          onCancel={() => setShowCropper(false)}
+        />
+      )}
+
+      <div className="bg-slate-800 p-8 rounded-lg shadow-xl w-full max-w-md border border-slate-700">
         <h2 className="text-2xl font-bold mb-6 text-emerald-400 text-center">
-          {isLogin ? "Log In" : "Sign Up"}
+          {isLogin ? "Welcome Back" : "Create Account"}
         </h2>
+
         {error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm p-2 rounded mb-4 text-center">
+          <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm p-3 rounded mb-4 text-center">
             {error}
           </div>
         )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <div className="flex flex-col items-center mb-6">
+              <div className="relative w-24 h-24 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center overflow-hidden group cursor-pointer">
+                {selectedFile ? (
+                  <img 
+                    src={URL.createObjectURL(selectedFile)} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover" 
+                  />
+                ) : (
+                  <User className="w-10 h-10 text-slate-400" />
+                )}
+                <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                   <Upload className="w-6 h-6 text-white" />
+                   <input type="file" className="hidden" accept="image/*" onChange={onFileSelect} />
+                </label>
+              </div>
+              <p className="text-xs text-slate-400 mt-2">Tap to upload photo</p>
+            </div>
+          )}
           <div>
-            <label className="block text-slate-400 text-sm mb-1">
-              Username
-            </label>
+            <label className="block text-slate-400 text-sm mb-1">Username</label>
             <input
               type="text"
-              className="w-full p-2 rounded bg-slate-700 border border-slate-600 focus:border-emerald-500 focus:outline-none transition-colors"
+              className="w-full p-2 rounded bg-slate-700 border border-slate-600 focus:border-emerald-500 outline-none"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -76,61 +142,81 @@ export default function Auth() {
           </div>
 
           {!isLogin && (
-            <div>
-              <label className="block text-slate-400 text-sm mb-1">Email</label>
-              <input
-                type="email"
-                className="w-full p-2 rounded bg-slate-700 border border-slate-600 focus:border-emerald-500 focus:outline-none transition-colors"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
+            <>
+              <div>
+                <label className="block text-slate-400 text-sm mb-1">Full Name</label>
+                <input
+                  type="text"
+                  className="w-full p-2 rounded bg-slate-700 border border-slate-600 focus:border-emerald-500 outline-none"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 text-sm mb-1">Email</label>
+                <input
+                  type="email"
+                  className="w-full p-2 rounded bg-slate-700 border border-slate-600 focus:border-emerald-500 outline-none"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 text-sm mb-1">Gender</label>
+                <select 
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="w-full p-2 rounded bg-slate-700 border border-slate-600 focus:border-emerald-500 outline-none"
+                >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+              </div>
+            </>
           )}
 
           <div>
-            <label className="block text-slate-400 text-sm mb-1">
-              Password
-            </label>
-
+            <label className="block text-slate-400 text-sm mb-1">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                className="w-full p-2 rounded bg-slate-700 border border-slate-600 focus:border-emerald-500 focus:outline-none transition-colors"
+                className="w-full p-2 rounded bg-slate-700 border border-slate-600 focus:border-emerald-500 outline-none"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-
               <button
                 type="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-400 transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-400"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? (
-                  <Eye className="w-5 h-5" />
-                ) : (
-                  <EyeOff className="w-5 h-5" />
-                )}
+                {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
               </button>
             </div>
           </div>
+
           <button
             type="submit"
-            className="w-full p-2 rounded bg-emerald-600 hover:bg-emerald-500 font-bold transition-colors"
+            className="w-full p-3 rounded bg-emerald-600 hover:bg-emerald-500 font-bold transition-colors mt-6"
           >
             {isLogin ? "Login" : "Create Account"}
           </button>
         </form>
+
         <div className="mt-6 text-center text-sm text-slate-400">
           {isLogin ? "New Here?" : "Already have an account?"}
-
           <button
             onClick={() => {
               setIsLogin(!isLogin);
               setError("");
+              setSelectedFile(null);
             }}
-            className="pl-1 text-emerald-400 hover:text-emerald-300 hover:underline font-medium cursor-pointer"
+            className="pl-2 text-emerald-400 hover:underline font-medium"
           >
             {isLogin ? "Signup" : "Login"}
           </button>
