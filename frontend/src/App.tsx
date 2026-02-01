@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute"; // Import your guard
 import Home from "./pages/Home";
 import FindUsers from "./pages/FindUsers";
 import Requests from "./pages/Requests";
+import FriendsList from "./pages/FriendsList";
 
 function App() {
   return (
@@ -34,6 +35,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Requests />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/friends"
+          element={
+            <ProtectedRoute>
+              <FriendsList />
             </ProtectedRoute>
           }
         />

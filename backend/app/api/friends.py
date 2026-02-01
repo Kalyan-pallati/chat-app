@@ -16,6 +16,11 @@ class FriendRequestWithSender(BaseModel):
     sender_username: str
     status: str
 
+class Friend(BaseModel):
+    id: int
+    username: str
+    email: str
+    
 @router.post("/request/{username}")
 def send_friend_request(username: str, 
                         session: Session = Depends(get_session),
@@ -90,3 +95,33 @@ def accept_friend_request(
     session.commit()
 
     return {"message": "Friend Request Accepted! You can chat now."}
+
+@router.get("/list", response_model=List[Friend])
+def get_friends_list(
+    session : Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    statement = select(FriendRequest).where(
+        (FriendRequest.status == FriendStatus.ACCEPTED) & (
+                                            (FriendRequest.sender_id == current_user.id) | 
+                                            (FriendRequest.receiver_id == current_user.id) )
+                                            )
+    
+    connections = session.exec(statement).all()
+
+    friend_ids = []
+    for conn in connections:
+        if conn.sender_id == current_user.id:
+            friend_ids.append(conn.receiver_id)
+        else:
+            friend_ids.append(conn.sender_id)
+    
+    if not friend_ids:
+        return []
+    
+    friends = session.exec(select(User).where(User.id.in_(friend_ids))).all()
+
+    return [
+        Friend(id=f.id, username=f.username, email=f.email)
+        for f in friends
+    ]
