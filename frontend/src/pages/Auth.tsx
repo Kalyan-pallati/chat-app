@@ -27,7 +27,7 @@ export default function Auth() {
 
   useEffect(() => {
     if (token) {
-      navigate("/find");
+      navigate("/chat");
     }
   }, [token, navigate]);
 
@@ -81,7 +81,7 @@ export default function Auth() {
       if (!res.ok) throw new Error(data.detail || "Authentication Failed");
 
       login(data.access_token);
-      navigate("/find");
+      navigate("/chat");
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     }
