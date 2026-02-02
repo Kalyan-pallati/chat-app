@@ -7,10 +7,9 @@ class User(SQLModel, table=True):
     username: str = Field(index=True, unique=True)
     email: str = Field(index=True, unique=True)
     hashed_password: str
-
     full_name: str = Field(default="")
     bio: str = Field(default="Hey there! I'm ready to chat Anytime")
     gender: str = Field(default="other")
-
+    profile_picture: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     allow_stranger_dms: bool = Field(default=False)

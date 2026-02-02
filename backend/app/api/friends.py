@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlmodel import Session, select, or_
-from typing import List
+from typing import List, Optional
 
 from app.db.session import get_session
 from app.models.user import User
@@ -20,6 +20,12 @@ class Friend(BaseModel):
     id: int
     username: str
     email: str
+
+class FriendResponse(BaseModel):
+    id: int
+    username: str
+    full_name: str
+    profile_picture: Optional[str] = None
     
 @router.post("/request/{username}")
 def send_friend_request(username: str, 
@@ -125,3 +131,31 @@ def get_friends_list(
         Friend(id=f.id, username=f.username, email=f.email)
         for f in friends
     ]
+
+@router.get("/friends", response_model=List[FriendResponse]) # 👈 Make sure to import List and the Schema
+def get_my_friends(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    query = select(FriendRequest).where(
+        (FriendRequest.status == FriendStatus.ACCEPTED) &
+        (
+            (FriendRequest.sender_id == current_user.id) | 
+            (FriendRequest.receiver_id == current_user.id)
+        )
+    )
+    connections = session.exec(query).all()
+
+    friend_ids = []
+    for conn in connections:
+        if conn.sender_id == current_user.id:
+            friend_ids.append(conn.receiver_id)
+        else:
+            friend_ids.append(conn.sender_id)
+
+    if not friend_ids:
+        return []
+
+    friends = session.exec(select(User).where(User.id.in_(friend_ids))).all()
+    
+    return friends

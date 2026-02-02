@@ -5,6 +5,7 @@ from typing import Optional
 class Message(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     content: str
-    sender_id: int = Field(foreign_key="user.id")
-    recipient_id: int = Field(foreign_key="user.id") 
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+    is_read: bool = Field(default=False) 
+    sender_id: int = Field(foreign_key="user.id")
+    receiver_id: int = Field(foreign_key="user.id")

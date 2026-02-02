@@ -33,7 +33,7 @@ export default function FindUsers() {
       const data = await res.json();
       setResult(data);
     } catch (err) {
-      setError("User not found");
+      setError("No Users Found");
     } finally {
       setLoading(false);
     }
