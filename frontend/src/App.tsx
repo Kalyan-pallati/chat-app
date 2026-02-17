@@ -6,6 +6,8 @@ import Home from "./pages/Home";
 import FindUsers from "./pages/FindUsers";
 import Requests from "./pages/Requests";
 import FriendsList from "./pages/FriendsList";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         {/* Public Routes - Anyone can visit these */}
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route
           path="/chat"
           element={

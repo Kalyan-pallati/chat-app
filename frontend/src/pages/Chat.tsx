@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuthStore, type AuthState } from "../store/authStore";
 import ChatSidebar from "../components/ChatSidebar";
 import ChatArea from "../components/ChatArea";
+import Navbar from "../components/NavBar";
 
 export default function Chat() {
     const [selectedFriend, setSelectedFriend] = useState<any>(null);
@@ -27,6 +28,8 @@ export default function Chat() {
 
     if(!currentUser) return <div className="text-white p-10">Loading...</div>;
     return (
+      <div>
+        <Navbar />
     <div className="flex h-screen bg-slate-900 overflow-hidden">
       {/* Left Sidebar */}
       <ChatSidebar 
@@ -34,7 +37,6 @@ export default function Chat() {
         selectedFriendId={selectedFriend?.id} 
       />
 
-      {/* Right Area */}
       <div className="flex-1 flex flex-col bg-black/20 relative">
         {selectedFriend ? (
           <ChatArea 
@@ -42,7 +44,6 @@ export default function Chat() {
             selectedFriend={selectedFriend} 
           />
         ) : (
-          // Empty State
           <div className="flex-1 flex flex-col items-center justify-center text-slate-500">
             <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-4">
                <span className="text-4xl">👋</span>
@@ -51,6 +52,7 @@ export default function Chat() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

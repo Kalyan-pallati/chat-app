@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuthStore, type AuthState } from "../store/authStore";
 import { Search, UserPlus, MessageSquare } from "lucide-react";
+import Navbar from "../components/NavBar";
 
 interface UserProfile {
   id: number;
@@ -56,7 +57,10 @@ export default function FindUsers() {
   };
 
   return (
+    <div>
+      <Navbar />
     <div className="h-screen bg-slate-900 text-white p-8">
+      
       <div className="max-w-md mx-auto">
         <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <Search className="w-6 h-6 text-emerald-400" /> Find Friends
@@ -133,6 +137,7 @@ export default function FindUsers() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
