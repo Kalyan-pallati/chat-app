@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuthStore, type AuthState } from "../store/authStore";
 import { User, Check, X } from "lucide-react";
+import Navbar from "../components/NavBar";
 
 export default function Requests() {
     const token = useAuthStore((state: AuthState) => state.token);
@@ -43,6 +44,8 @@ export default function Requests() {
     };
 
     return (
+        <div>
+            <Navbar />
         <div className="h-screen bg-slate-900 text-white p-8">
             <div className="max-w-md mx-auto">
                 <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -84,6 +87,7 @@ export default function Requests() {
                         </div>
                     )}
             </div>
+        </div>
         </div>
     );
 }

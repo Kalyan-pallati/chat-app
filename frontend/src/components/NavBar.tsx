@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore, type AuthState } from "../store/authStore";
-import { MessageSquare, Users, LogOut } from "lucide-react";
+import { MessageSquare, Users, LogOut, UserPlus } from "lucide-react";
 
 export default function Navbar() {
   const { token, logout } = useAuthStore((state: AuthState) => state);
@@ -36,6 +36,11 @@ export default function Navbar() {
               <Link to="/chat" className="flex items-center gap-2 text-slate-300 hover:text-white transition text-sm font-medium">
                 <MessageSquare className="w-4 h-4" />
                 <span className="hidden sm:inline">Chats</span>
+              </Link>
+
+              <Link to="/requests" className="flex items-center gap-2 text-slate-300 hover:text-white transition text-sm font-medium">
+                <UserPlus className="w-4 h-4" />
+                <span className="hidden sm:inline">Requests</span>
               </Link>
 
               {/* Divider */}

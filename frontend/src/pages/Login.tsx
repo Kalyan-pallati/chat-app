@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"; // 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore, type AuthState } from "../store/authStore";
 import { Eye, EyeOff} from "lucide-react";
 
@@ -101,9 +101,7 @@ export default function Login() {
 
         <div className="mt-6 text-center text-sm text-slate-400">
           New Here?
-          <button>
-            Login
-          </button>
+          <Link to="/signup" className="pl-2 hover:underline font-bold text-emerald-400">Signup</Link>
         </div>
       </div>
     </div>
