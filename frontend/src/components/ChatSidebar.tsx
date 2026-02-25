@@ -22,7 +22,7 @@ export default function ChatSidebar({ onSelectFriend, selectedFriendId }: ChatSi
   useEffect(() => {
     const fetchFriends = async () => {
       try {
-        const res = await fetch("http://localhost:8000/users/friends/friends", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/users/friends/friends`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
