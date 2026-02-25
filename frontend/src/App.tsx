@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Auth from "./pages/Auth"
 import Chat from "./pages/Chat";
 import ProtectedRoute from "./components/ProtectedRoute"; // Import your guard
 import Home from "./pages/Home";
@@ -13,9 +12,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes - Anyone can visit these */}
         <Route path="/" element={<Home />} />
-        <Route path="/auth" element={<Auth />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route
@@ -50,8 +47,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* Redirect unknown pages to login */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );

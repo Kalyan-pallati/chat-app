@@ -37,17 +37,16 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
           image={imageSrc}
           crop={crop}
           zoom={zoom}
-          aspect={1} // 👈 Forces 1:1 Square Ratio
+          aspect={1}
           onCropChange={onCropChange}
           onCropComplete={onCropCompleteCallback}
           onZoomChange={setZoom}
-          cropShape="round" // Shows a circle mask (preview)
+          cropShape="round"
           showGrid={false}
         />
       </div>
 
       <div className="w-full max-w-md mt-4 space-y-4">
-        {/* Zoom Slider */}
         <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400">Zoom</span>
             <input
@@ -62,7 +61,6 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
             />
         </div>
 
-        {/* Buttons */}
         <div className="flex gap-3">
             <button
             onClick={onCancel}
