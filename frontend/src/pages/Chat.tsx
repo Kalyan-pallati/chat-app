@@ -12,7 +12,7 @@ export default function Chat() {
     useEffect(() => {
         const fetchMe = async () => {
             try {
-                const res = await fetch("http://localhost:8000/users/me",{
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/users/me`,{
                     headers : {Authorization : `Bearer ${token}`}
                 });
                 if(res.ok){
@@ -30,7 +30,7 @@ export default function Chat() {
     return (
       <div>
         <Navbar />
-    <div className="flex h-screen bg-slate-900 overflow-hidden">
+    <div className="flex h-[calc(100vh-64px)] bg-slate-900 overflow-hidden">
       {/* Left Sidebar */}
       <ChatSidebar 
         onSelectFriend={setSelectedFriend} 

@@ -40,7 +40,7 @@ export default function FindUsers() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/users/search?q=${query}`,
+        `${import.meta.env.VITE_API_URL}/users/search?q=${query}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

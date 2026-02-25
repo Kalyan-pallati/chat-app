@@ -58,7 +58,7 @@ export default function Signup() {
         formData.append("file", selectedFile, "profile.jpg");
       }
 
-      const res = await fetch("http://localhost:8000/auth/signup", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/signup`, {
         method: "POST",
         body: formData, // Browser sets Content-Type to multipart/form-data automatically
       });

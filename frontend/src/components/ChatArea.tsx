@@ -33,7 +33,7 @@ export default function ChatArea({currentUser, selectedFriend}: ChatAreaProps) {
 
         const fetchHistory = async () => {
             try {
-                const res = await fetch(`http://localhost:8000/chat/history/${selectedFriend.id}`, {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/chat/history/${selectedFriend.id}`, {
                     headers: {Authorization : `Bearer ${token}`},
                 });
                 if(res.ok){
@@ -46,7 +46,7 @@ export default function ChatArea({currentUser, selectedFriend}: ChatAreaProps) {
         };
         fetchHistory();
 
-        const ws = new WebSocket(`ws://localhost:8000/chat/ws/${token}`);
+        const ws = new WebSocket(`${import.meta.env.VITE_WS_URL}/chat/ws/${token}`);
         ws.onopen = () => console.log("Connected to WebSocket Chat");
 
         ws.onmessage = (event) => {

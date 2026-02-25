@@ -16,7 +16,7 @@ export default function FriendsList() {
     useEffect(() => {
         const fetchFriends = async () => {
             try {
-                const res = await fetch("http://localhost:8000/users/friends/list", {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/friends/list`, {
                     headers : { Authorization : `Bearer ${token}`},
                 });
                 const data = await res.json();

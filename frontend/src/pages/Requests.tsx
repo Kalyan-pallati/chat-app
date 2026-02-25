@@ -10,7 +10,7 @@ export default function Requests() {
 
     const fetchRequests = async () => {
         try {
-            const res = await fetch("http://localhost:8000/users/friends/requests/pending", {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/users/friends/requests/pending`, {
                 headers: { Authorization: `Bearer ${token}`},
             })
             const data = await res.json();
@@ -28,7 +28,7 @@ export default function Requests() {
 
     const handleAccept = async (requestId: number) => {
         try {
-            const res = await fetch(`http://localhost:8000/users/friends/accept/${requestId}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/users/friends/accept/${requestId}`, {
                 method: "POST",
                 headers: {Authorization : `Bearer ${token}`},
             });
