@@ -21,7 +21,7 @@ export default function Navbar() {
             <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-slate-900">
               <MessageSquare className="w-5 h-5 fill-current" />
             </div>
-            ChatApp
+            Relay
           </Link>
 
           {/* Navigation Links (Only if logged in) */}
