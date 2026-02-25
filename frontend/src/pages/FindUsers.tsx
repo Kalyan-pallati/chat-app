@@ -64,7 +64,7 @@ export default function FindUsers() {
   const sendRequest = async (username: string) => {
     try {
       const res = await fetch(
-        `http://localhost:8000/users/friends/request/${username}`,
+        `${import.meta.env.VITE_API_URL}/users/friends/request/${username}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
