@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuthStore, type AuthState } from "../store/authStore";
 import { Send } from "lucide-react";
+import UserProfileModal from "./UserProfileModal";
 
 interface Message {
     id: number;
@@ -15,6 +16,23 @@ interface ChatAreaProps {
     selectedFriend: any;
 }
 
+interface UserProfile {
+  id: number;
+  username: string;
+  email: string;
+  full_name: string;
+  bio: string;
+  gender: string;
+  profile_picture: string | null;
+  allow_stranger_dms: boolean;
+  friendship_status:
+    | "stranger"
+    | "friends"
+    | "request_sent"
+    | "request_received"
+    | "self";
+}
+
 export default function ChatArea({currentUser, selectedFriend}: ChatAreaProps) {
     const token = useAuthStore((state: AuthState) => state.token)
 
@@ -23,6 +41,7 @@ export default function ChatArea({currentUser, selectedFriend}: ChatAreaProps) {
 
     const socketRef = useRef<WebSocket | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [viewingUser, setViewingUser] = useState<UserProfile | null>(null);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({behavior: "smooth"});
@@ -84,14 +103,23 @@ export default function ChatArea({currentUser, selectedFriend}: ChatAreaProps) {
     return (
         <div className="flex flex-col h-full bg-slate-900 w-full">
             <div className="p-4 bg-slate-800 border-b border-slate-700 flex items-center gap-3">
+                {viewingUser && (
+                <UserProfileModal
+                    user = {viewingUser}
+                    onClose={() => setViewingUser(null)}
+                    />
+            )}
                 <div className="w-10 h-10 rounded-full bg-slate-800 overflow-hidden">
                     {selectedFriend.profile_picture ? (
                         <img src={selectedFriend.profile_picture} className="w-full h-full object-cover" />
                     ): (
-                        <div className="w-full h-full flex items-center justify-center text-white">{selectedFriend.username[0]}</div>
+                        <div
+                        onClick={() => {setViewingUser(selectedFriend)}}
+                        className="w-full h-full flex items-center justify-center text-white">{selectedFriend.username[0]}</div>
                     )}
                 </div>
-                <h2 className="text-white font-bold">{selectedFriend.full_name || selectedFriend.username}</h2>
+                <h2 onClick={() => {setViewingUser(selectedFriend)}} 
+                className="text-white font-bold cursor-pointer">{selectedFriend.full_name || selectedFriend.username}</h2>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -104,7 +132,7 @@ export default function ChatArea({currentUser, selectedFriend}: ChatAreaProps) {
                             }`}>
                                 <p>{msg.content}</p>
                                 <span className={`text-[10px] block text-right mt-1 opacity-70`}>
-                                    {new Date(msg.timestamp).toLocaleDateString([], {hour:'2-digit', minute:'2-digit'})}
+                                    {new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
                                 </span>
                             </div>
                         </div>
