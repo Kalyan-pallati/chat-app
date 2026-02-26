@@ -43,6 +43,20 @@ export default function Requests() {
         }
     };
 
+    const handleReject = async (requestId: number) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/users/friends/reject/${requestId}`, {
+                method: "POST",
+                headers: {Authorization : `Bearer ${token}`},
+            });
+            if(res.ok){
+                setRequests(requests.filter((r) => r.id != requestId));
+                alert("Request Rejected and Removed");
+            }
+        } catch(err){
+            console.log(err);
+        }
+    };
     return (
         <div>
             <Navbar />
@@ -78,7 +92,9 @@ export default function Requests() {
                                             title="Accept">
                                                 <Check className="w-5 h-5"/>
                                             </button>
-                                            <button className="p-2 bg-slate-700 rounded-full hover:bg-red-500 hover:text-white transition text-slate-400">
+                                            <button title="Reject"
+                                            onClick={() => handleReject(req.id)}
+                                            className="p-2 bg-slate-700 rounded-full hover:bg-red-500 hover:text-white transition text-slate-400">
                                                 <X className="w-5 h-5"/>
                                             </button>
                                     </div>

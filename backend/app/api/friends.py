@@ -102,6 +102,28 @@ def accept_friend_request(
 
     return {"message": "Friend Request Accepted! You can chat now."}
 
+@router.post("/reject/{request_id}")
+def reject_friend_request(
+    request_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    statement = select(FriendRequest).where(
+        FriendRequest.id == request_id
+    )
+    friend_request = session.exec(statement).first()
+
+    if not friend_request:
+        raise HTTPException(status_code="404", detail="Request not found")
+    
+    if friend_request.receiver_id != current_user.id:
+        raise HTTPException(status_code="403", detail="Not Authorized")
+    
+    session.delete(friend_request)
+    session.commit()
+
+    return {"message": "Friend request rejected and removed"}
+
 @router.get("/list", response_model=List[Friend])
 def get_friends_list(
     session : Session = Depends(get_session),
@@ -132,7 +154,7 @@ def get_friends_list(
         for f in friends
     ]
 
-@router.get("/friends", response_model=List[FriendResponse]) # 👈 Make sure to import List and the Schema
+@router.get("/friends", response_model=List[FriendResponse]) 
 def get_my_friends(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
