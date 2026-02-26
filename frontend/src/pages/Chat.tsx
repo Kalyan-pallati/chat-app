@@ -3,11 +3,21 @@ import { useAuthStore, type AuthState } from "../store/authStore";
 import ChatSidebar from "../components/ChatSidebar";
 import ChatArea from "../components/ChatArea";
 import Navbar from "../components/NavBar";
+import { useLocation } from "react-router-dom";
 
 export default function Chat() {
     const [selectedFriend, setSelectedFriend] = useState<any>(null);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const token = useAuthStore((state: AuthState) => state.token);
+
+    const location = useLocation();
+
+    useEffect(() => {
+      if (location.state?.preselectedUser) {
+        setSelectedFriend(location.state.preselectedUser);
+        window.history.replaceState({}, document.title); // Clear the state after using it
+      }
+    })
 
     useEffect(() => {
         const fetchMe = async () => {

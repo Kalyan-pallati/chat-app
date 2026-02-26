@@ -3,6 +3,7 @@ import { useAuthStore, type AuthState } from "../store/authStore";
 import { Search, UserPlus, MessageSquare } from "lucide-react";
 import Navbar from "../components/NavBar";
 import UserProfileModal from "../components/UserProfileModal";
+import { useNavigate } from "react-router-dom";
 
 interface UserProfile {
   id: number;
@@ -23,6 +24,7 @@ interface UserProfile {
 
 export default function FindUsers() {
   const token = useAuthStore((state: AuthState) => state.token);
+  const navigate = useNavigate();
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<UserProfile[]>([]);
@@ -163,7 +165,8 @@ export default function FindUsers() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   {user.friendship_status === "friends" && (
-                    <button className="bg-blue-600 p-2 rounded hover:bg-blue-500">
+                    <button onClick={() => navigate('/chat', {state : {preselectedUser: user}})}
+                    className="bg-blue-600 p-2 rounded hover:bg-blue-500">
                       <MessageSquare className="w-5 h-5" />
                     </button>
                   )}

@@ -1,14 +1,13 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Shield, Zap, Users } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import Navbar from "../components/NavBar";
-import Chat from "./Chat";
 
 export default function Home() {
   const token = useAuthStore((state) => state.token);
 
   if(token) 
-    return <Chat />;
+    return <Navigate to="/chat"  replace />
   return (
     <div className="min-h-screen bg-slate-900 text-white font-sans">
       <Navbar />
