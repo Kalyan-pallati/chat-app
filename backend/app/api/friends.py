@@ -1,7 +1,10 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlmodel import Session, select, or_
+from sqlmodel import Session, select, or_, desc
 from typing import List, Optional
+from app.models.message import Message
 
 from app.db.session import get_session
 from app.models.user import User
@@ -30,6 +33,8 @@ class FriendResponse(BaseModel):
     gender: Optional[str] = None
     profile_picture: Optional[str] = None
     allow_stranger_dms: bool
+    last_message_time: Optional[str] = None     #Used for sorting friends by recent activity
+    last_message_content: Optional[str] = None  #Used to show a preview of last msg in chatsidebar
     
 @router.post("/request/{username}")
 def send_friend_request(username: str, 
@@ -183,5 +188,34 @@ def get_my_friends(
         return []
 
     friends = session.exec(select(User).where(User.id.in_(friend_ids))).all()
-    
-    return friends
+
+    friend_responses = []
+
+    for f in friends:
+        stmt = select(Message).where(
+            or_(
+                (Message.sender_id == current_user.id) & (Message.receiver_id == f.id),
+                (Message.sender_id == f.id) & (Message.receiver_id == current_user.id)
+            )
+        ).order_by(desc(Message.timestamp)).limit(1)
+
+        last_msg = session.exec(stmt).first()
+        friend_responses.append(
+            FriendResponse(
+                id=f.id,
+                username=f.username,
+                email=f.email,
+                full_name=f.full_name,
+                bio=f.bio,
+                gender=f.gender,
+                profile_picture=f.profile_picture,
+                allow_stranger_dms=f.allow_stranger_dms,
+                last_message_content=str(last_msg.content) if last_msg else None,
+                last_message_time=str(last_msg.timestamp) if last_msg else None
+            )
+        )
+    friend_responses.sort(
+        key=lambda x: x.last_message_time or datetime.min,
+        reverse=True
+    )
+    return friend_responses

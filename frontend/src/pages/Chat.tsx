@@ -6,12 +6,17 @@ import Navbar from "../components/NavBar";
 import { useLocation } from "react-router-dom";
 
 export default function Chat() {
+    const [refreshSidebarKey, setRefreshSidebarKey] = useState(0);
     const [selectedFriend, setSelectedFriend] = useState<any>(null);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const token = useAuthStore((state: AuthState) => state.token);
 
     console.log(selectedFriend);
     const location = useLocation();
+
+    const handleMessageUpdate = () => {
+      setRefreshSidebarKey((prev) => prev + 1);
+    }
 
     useEffect(() => {
       if (location.state?.preselectedUser) {
@@ -46,13 +51,15 @@ export default function Chat() {
       <ChatSidebar 
         onSelectFriend={setSelectedFriend} 
         selectedFriendId={selectedFriend?.id} 
+        refreshTrigger={refreshSidebarKey}
       />
 
       <div className="flex-1 flex flex-col bg-black/20 relative">
         {selectedFriend ? (
           <ChatArea 
             currentUser={currentUser} 
-            selectedFriend={selectedFriend} 
+            selectedFriend={selectedFriend}
+            onMessageUpdate={handleMessageUpdate}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-slate-500">

@@ -32,11 +32,13 @@ interface UserProfile {
 interface ChatAreaProps {
   currentUser: any;
   selectedFriend: UserProfile;
+  onMessageUpdate?: () => void;
 }
 
 export default function ChatArea({
   currentUser,
   selectedFriend,
+  onMessageUpdate,
 }: ChatAreaProps) {
   const token = useAuthStore((state: AuthState) => state.token);
 
@@ -89,6 +91,7 @@ export default function ChatArea({
       if (isRelevant) {
         setMessages((prev) => [...prev, message]);
       }
+      onMessageUpdate?.();
     };
 
     socketRef.current = ws;
@@ -118,6 +121,7 @@ export default function ChatArea({
     if (textAreaRef.current) {
       textAreaRef.current.style.height = "auto";
     }
+    onMessageUpdate?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

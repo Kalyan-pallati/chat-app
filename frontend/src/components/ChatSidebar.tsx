@@ -11,14 +11,17 @@ interface Friend {
   gender: string;
   allow_stranger_dms: boolean;
   profile_picture: string | null;
+  last_message_time: string | null;
+  last_message_content: string | null;
 }
 
 interface ChatSidebarProps {
   onSelectFriend: (friend: Friend) => void;
   selectedFriendId?: number;
+  refreshTrigger?: number; 
 }
 
-export default function ChatSidebar({ onSelectFriend, selectedFriendId }: ChatSidebarProps) {
+export default function ChatSidebar({ onSelectFriend, selectedFriendId, refreshTrigger }: ChatSidebarProps) {
   const token = useAuthStore((state: AuthState) => state.token);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [search, setSearch] = useState("");
@@ -38,7 +41,7 @@ export default function ChatSidebar({ onSelectFriend, selectedFriendId }: ChatSi
       }
     };
     fetchFriends();
-  }, [token]);
+  }, [token, refreshTrigger]);
 
   // Filter friends by search
   const filteredFriends = friends.filter((f) =>
@@ -88,8 +91,20 @@ export default function ChatSidebar({ onSelectFriend, selectedFriendId }: ChatSi
                 <h3 className="text-white font-medium truncate">
                     {friend.full_name || friend.username}
                 </h3>
-                <p className="text-slate-400 text-xs truncate">Click to chat</p>
+                <p className="text-slate-400 text-xs truncate">{friend.last_message_content}</p>
               </div>
+              <p className="text-slate-400 text-xs truncate">
+                  {friend.last_message_time
+                    ? new Date(
+                        friend.last_message_time.endsWith("Z")
+                          ? friend.last_message_time
+                          : friend.last_message_time + "Z"
+                      ).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
+                </p>
             </div>
           ))
         )}
