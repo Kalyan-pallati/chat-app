@@ -11,7 +11,6 @@ export default function Chat() {
     const [currentUser, setCurrentUser] = useState<any>(null);
     const token = useAuthStore((state: AuthState) => state.token);
 
-    console.log(selectedFriend);
     const location = useLocation();
 
     const handleMessageUpdate = () => {
@@ -23,7 +22,7 @@ export default function Chat() {
         setSelectedFriend(location.state.preselectedUser);
         window.history.replaceState({}, document.title); // Clear the state after using it
       }
-    })
+    },[location.state]);
 
     useEffect(() => {
         const fetchMe = async () => {

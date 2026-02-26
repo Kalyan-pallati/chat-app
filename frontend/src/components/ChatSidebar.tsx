@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { useAuthStore, type AuthState } from "../store/authStore";
+import { formatSidebarTime } from "../utils/formatSidebar";
 
 interface Friend {
   id: number;
@@ -94,16 +95,7 @@ export default function ChatSidebar({ onSelectFriend, selectedFriendId, refreshT
                 <p className="text-slate-400 text-xs truncate">{friend.last_message_content}</p>
               </div>
               <p className="text-slate-400 text-xs truncate">
-                  {friend.last_message_time
-                    ? new Date(
-                        friend.last_message_time.endsWith("Z")
-                          ? friend.last_message_time
-                          : friend.last_message_time + "Z"
-                      ).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : ""}
+                  {friend.last_message_time ? formatSidebarTime(friend.last_message_time) : ""}
                 </p>
             </div>
           ))
