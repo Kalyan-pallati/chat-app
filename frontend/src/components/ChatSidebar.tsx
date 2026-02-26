@@ -5,7 +5,11 @@ import { useAuthStore, type AuthState } from "../store/authStore";
 interface Friend {
   id: number;
   username: string;
+  email: string;
   full_name: string;
+  bio: string;
+  gender: string;
+  allow_stranger_dms: boolean;
   profile_picture: string | null;
 }
 

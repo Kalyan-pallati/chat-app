@@ -10,6 +10,7 @@ export default function Chat() {
     const [currentUser, setCurrentUser] = useState<any>(null);
     const token = useAuthStore((state: AuthState) => state.token);
 
+    console.log(selectedFriend);
     const location = useLocation();
 
     useEffect(() => {

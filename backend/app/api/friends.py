@@ -24,8 +24,12 @@ class Friend(BaseModel):
 class FriendResponse(BaseModel):
     id: int
     username: str
-    full_name: str
+    email: str
+    full_name: Optional[str] = None
+    bio: Optional[str] = None
+    gender: Optional[str] = None
     profile_picture: Optional[str] = None
+    allow_stranger_dms: bool
     
 @router.post("/request/{username}")
 def send_friend_request(username: str, 
@@ -114,10 +118,10 @@ def reject_friend_request(
     friend_request = session.exec(statement).first()
 
     if not friend_request:
-        raise HTTPException(status_code="404", detail="Request not found")
+        raise HTTPException(status_code=404, detail="Request not found")
     
     if friend_request.receiver_id != current_user.id:
-        raise HTTPException(status_code="403", detail="Not Authorized")
+        raise HTTPException(status_code=403, detail="Not Authorized")
     
     session.delete(friend_request)
     session.commit()
