@@ -1,13 +1,24 @@
+from app.core import cloudinary
+from app.core.cloudinary import upload_profile_picture
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select, or_
 from pydantic import BaseModel
 from typing import Optional, List
+from fastapi import File, UploadFile
 
 from app.db.session import get_session
 from app.models.user import User
 from app.models.friend import FriendRequest, FriendStatus
 from app.core.security import get_current_user
 from app.models.user import User
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    bio: Optional[str] = None
+    gender: Optional[str] = None
+    allow_stranger_dms: Optional[bool] = None
+    profile_picture: Optional[str] = None
+    username: Optional[str] = None
 class UserProfileResponse(BaseModel):
     id: int
     username: str
@@ -20,6 +31,46 @@ class UserProfileResponse(BaseModel):
     friendship_status: str
 
 router = APIRouter()
+
+@router.patch("/updateme")
+def update_my_profile(
+    update_data: UserUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data provided for update")
+    
+    update_dict = update_data.dict(exclude_unset=True)
+    for key,value in update_dict.items():
+        setattr(current_user, key, value)
+
+    session.add(current_user)
+    session.commit()
+
+    session.refresh(current_user)
+
+    return current_user
+
+@router.post("/updateme/avatar")
+def update_profile_picture(
+    file: UploadFile = File(...),
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    secure_url = upload_profile_picture(file.file, current_user.id)
+    
+    if not secure_url:
+        raise HTTPException(status_code=500, detail="Failed to upload image to Cloudinary")
+
+    # Save the new URL to the database
+    current_user.profile_picture = secure_url
+    
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    
+    return current_user
 
 @router.get("/me", response_model=UserProfileResponse)
 def get_current_user_profile(
