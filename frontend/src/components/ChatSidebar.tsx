@@ -45,7 +45,63 @@ export default function ChatSidebar({ onSelectFriend, selectedFriendId, refreshT
     fetchFriends();
   }, [token, refreshTrigger]);
 
-  // Filter friends by search
+  useEffect(() => {
+    if (!token) return;
+
+    const ws = new WebSocket(`${import.meta.env.VITE_WS_URL}/chat/ws/${token}`);
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      // If the message is a READ signal, clear the badges
+      if (data.type === "READ_UPDATE") {
+         setFriends((prevFriends) => 
+            prevFriends.map(f => 
+                f.id === data.reader_id ? { ...f, unread_count: 0 } : f
+            )
+         );
+         return;
+      }
+
+      // If it's a normal message, we need to update the sidebar!
+      if (data.sender_id && data.content) {
+        setFriends((prevFriends) => {
+          
+          // 1. Check if the message is from the friend we currently have open
+          // If so, we don't increase the unread count because we are looking at it!
+          const isCurrentlyOpen = selectedFriendId === data.sender_id;
+
+          const updatedFriends = prevFriends.map((friend) => {
+            if (friend.id === data.sender_id || friend.id === data.receiver_id) {
+              const shouldIncrementUnread = data.sender_id === friend.id && !isCurrentlyOpen;
+
+              return {
+                ...friend,
+                last_message_content: data.content,
+                last_message_time: data.timestamp || new Date().toISOString(),
+                unread_count: shouldIncrementUnread ? (friend.unread_count || 0) + 1 : friend.unread_count
+              };
+            }
+            return friend;
+          });
+
+          // 3. Sort the array so the person who just texted jumps to the top!
+          return updatedFriends.sort((a, b) => {
+             const timeA = new Date(a.last_message_time || 0).getTime();
+             const timeB = new Date(b.last_message_time || 0).getTime();
+             return timeB - timeA;
+          });
+          
+        });
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [token, selectedFriendId]); // Re-run if we select a different friend so isCurrentlyOpen is accurate
+
+
   const filteredFriends = friends.filter((f) =>
     f.full_name?.toLowerCase().includes(search.toLowerCase()) || 
     f.username.toLowerCase().includes(search.toLowerCase())
