@@ -33,7 +33,7 @@ class FriendResponse(BaseModel):
     gender: Optional[str] = None
     profile_picture: Optional[str] = None
     allow_stranger_dms: bool
-    last_message_time: Optional[str] = None     #Used for sorting friends by recent activity
+    last_message_time: Optional[datetime] = None     #Used for sorting friends by recent activity
     last_message_content: Optional[str] = None  #Used to show a preview of last msg in chatsidebar
 
 @router.get("/friends", response_model=List[FriendResponse]) 
@@ -84,7 +84,7 @@ def get_my_friends(
                 profile_picture=f.profile_picture,
                 allow_stranger_dms=f.allow_stranger_dms,
                 last_message_content=str(last_msg.content) if last_msg else None,
-                last_message_time=str(last_msg.timestamp) if last_msg else None
+                last_message_time=last_msg.timestamp if last_msg else None
             )
         )
     friend_responses.sort(
