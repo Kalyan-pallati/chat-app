@@ -1,5 +1,5 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
-from sqlmodel import Session, select, or_
+from sqlmodel import Session, select, or_, update
 from typing import List
 from datetime import datetime
 import json
@@ -96,3 +96,37 @@ async def websocket_endpoint(
 
     except WebSocketDisconnect:
         manager.disconnect(user_id, websocket)
+
+@router.put("/read/{sender_id}")
+async def mark_messages_as_read(
+    sender_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    statement = (
+        update(Message)
+        .where(
+            (Message.sender_id == sender_id) &
+            (Message.receiver_id == current_user.id) &
+            (Message.is_read == False)
+        )
+        .values(is_read = True)
+    )
+
+    result = session.exec(statement)
+    session.commit()
+
+    updated_count = result.rowcount
+
+    if updated_count == 0:
+        return {"status": "already_read"}
+    
+    try:
+        await manager.send_personal_message(
+            {"type":"READ_UPDATE", "reader_id": current_user.id},
+            sender_id
+        )
+    except Exception as e:
+        print(f"User {sender_id} is offline, skipping real-time update")
+    
+    return {"status": "success", "count": updated_count}

@@ -50,6 +50,22 @@ export default function ChatArea({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
+
+  const markAsRead = async () => {
+    if(!selectedFriend || !token ) return;
+
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/chat/read/${selectedFriend.id}`, {
+        method: "PUT",
+        headers: {Authorization: `Bearer ${token}`}
+      });
+      onMessageUpdate?.();
+    }
+    catch (err) {
+      console.error("Failed to mark messages as read", err);
+    }
+  }
+
   // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -68,6 +84,8 @@ export default function ChatArea({
         if (res.ok) {
           const data = await res.json();
           setMessages(data);
+
+          markAsRead();
         }
       } catch (err) {
         console.error("History Fetch Failed", err);
@@ -83,6 +101,17 @@ export default function ChatArea({
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
 
+      if(message.type === "READ_UPDATE") {
+        if(selectedFriend && message.reader_id === selectedFriend.id) {
+          setMessages((prev) => 
+          prev.map((msg) => 
+          msg.receiver_id === message.reader_id ? {...msg, is_read: true} : msg
+        )
+      );
+        }
+        return;
+      }
+
       const isRelevant =
         message.sender_id === selectedFriend.id ||
         (message.sender_id === currentUser.id &&
@@ -90,6 +119,10 @@ export default function ChatArea({
 
       if (isRelevant) {
         setMessages((prev) => [...prev, message]);
+
+        if(message.sender_id === selectedFriend.id){
+          markAsRead();
+        }
       }
       onMessageUpdate?.();
     };
@@ -198,6 +231,15 @@ export default function ChatArea({
                     minute: "2-digit",
                   })}
                 </span>
+                {isMe && (
+                  <div className="flex ml-1">
+                    {msg.is_read ? (
+                      <span className="text-blue-600 text-[12px] font-bold leading-none">✓✓</span>
+                    ) : (
+                      <span className="text-white text-[12px] font-bold leading-none">✓</span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           );
