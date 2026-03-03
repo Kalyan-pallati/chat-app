@@ -220,26 +220,31 @@ export default function ChatArea({
               >
                 <p className="whitespace-pre-wrap break-words">
                   {msg.content}
-                </p>
-                <span className="text-[10px] block text-right mt-1 opacity-70">
-                  {new Date(
-                    msg.timestamp.endsWith("Z")
-                      ? msg.timestamp
-                      : msg.timestamp + "Z"
-                  ).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-                {isMe && (
-                  <div className="flex ml-1">
-                    {msg.is_read ? (
-                      <span className="text-blue-600 text-[12px] font-bold leading-none">✓✓</span>
-                    ) : (
-                      <span className="text-white text-[12px] font-bold leading-none">✓</span>
-                    )}
+                  <div className="flex items-center justify-end gap-1 mt-1">
+                  <span className="text-[10px] opacity-70">
+                    {new Date(
+                      msg.timestamp.endsWith("Z")
+                        ? msg.timestamp
+                        : msg.timestamp + "Z"
+                    ).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+
+                  {isMe && (
+                    <span
+                      className={`text-[12px] font-bold leading-none ${
+                        msg.is_read ? "text-blue-600" : "text-white"
+                      }`}
+                    >
+                      {msg.is_read ? "✓✓" : "✓"}
+                    </span>
+                  )}
                   </div>
-                )}
+                  </p>
+
+                
               </div>
             </div>
           );
