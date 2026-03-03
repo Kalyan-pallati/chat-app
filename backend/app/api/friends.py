@@ -35,6 +35,63 @@ class FriendResponse(BaseModel):
     allow_stranger_dms: bool
     last_message_time: Optional[str] = None     #Used for sorting friends by recent activity
     last_message_content: Optional[str] = None  #Used to show a preview of last msg in chatsidebar
+
+@router.get("/friends", response_model=List[FriendResponse]) 
+def get_my_friends(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    query = select(FriendRequest).where(
+        (FriendRequest.status == FriendStatus.ACCEPTED) &
+        (
+            (FriendRequest.sender_id == current_user.id) | 
+            (FriendRequest.receiver_id == current_user.id)
+        )
+    )
+    connections = session.exec(query).all()
+
+    friend_ids = []
+    for conn in connections:
+        if conn.sender_id == current_user.id:
+            friend_ids.append(conn.receiver_id)
+        else:
+            friend_ids.append(conn.sender_id)
+
+    if not friend_ids:
+        return []
+
+    friends = session.exec(select(User).where(User.id.in_(friend_ids))).all()
+
+    friend_responses = []
+
+    for f in friends:
+        stmt = select(Message).where(
+            or_(
+                (Message.sender_id == current_user.id) & (Message.receiver_id == f.id),
+                (Message.sender_id == f.id) & (Message.receiver_id == current_user.id)
+            )
+        ).order_by(desc(Message.timestamp)).limit(1)
+
+        last_msg = session.exec(stmt).first()
+        friend_responses.append(
+            FriendResponse(
+                id=f.id,
+                username=f.username,
+                email=f.email,
+                full_name=f.full_name,
+                bio=f.bio,
+                gender=f.gender,
+                profile_picture=f.profile_picture,
+                allow_stranger_dms=f.allow_stranger_dms,
+                last_message_content=str(last_msg.content) if last_msg else None,
+                last_message_time=str(last_msg.timestamp) if last_msg else None
+            )
+        )
+    friend_responses.sort(
+        key=lambda x: x.last_message_time or datetime.min,
+        reverse=True
+    )
+    return friend_responses
     
 @router.post("/request/{username}")
 def send_friend_request(username: str, 
@@ -163,59 +220,3 @@ def get_friends_list(
         for f in friends
     ]
 
-@router.get("/friends", response_model=List[FriendResponse]) 
-def get_my_friends(
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
-):
-    query = select(FriendRequest).where(
-        (FriendRequest.status == FriendStatus.ACCEPTED) &
-        (
-            (FriendRequest.sender_id == current_user.id) | 
-            (FriendRequest.receiver_id == current_user.id)
-        )
-    )
-    connections = session.exec(query).all()
-
-    friend_ids = []
-    for conn in connections:
-        if conn.sender_id == current_user.id:
-            friend_ids.append(conn.receiver_id)
-        else:
-            friend_ids.append(conn.sender_id)
-
-    if not friend_ids:
-        return []
-
-    friends = session.exec(select(User).where(User.id.in_(friend_ids))).all()
-
-    friend_responses = []
-
-    for f in friends:
-        stmt = select(Message).where(
-            or_(
-                (Message.sender_id == current_user.id) & (Message.receiver_id == f.id),
-                (Message.sender_id == f.id) & (Message.receiver_id == current_user.id)
-            )
-        ).order_by(desc(Message.timestamp)).limit(1)
-
-        last_msg = session.exec(stmt).first()
-        friend_responses.append(
-            FriendResponse(
-                id=f.id,
-                username=f.username,
-                email=f.email,
-                full_name=f.full_name,
-                bio=f.bio,
-                gender=f.gender,
-                profile_picture=f.profile_picture,
-                allow_stranger_dms=f.allow_stranger_dms,
-                last_message_content=str(last_msg.content) if last_msg else None,
-                last_message_time=str(last_msg.timestamp) if last_msg else None
-            )
-        )
-    friend_responses.sort(
-        key=lambda x: x.last_message_time or datetime.min,
-        reverse=True
-    )
-    return friend_responses

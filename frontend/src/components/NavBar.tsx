@@ -19,7 +19,6 @@ export default function Navbar() {
             })
             const data = await res.json();
             setPendingCount(data.length);
-            console.log(data.length);
         }
         catch(err){
             console.error("Failed to load Requests");
