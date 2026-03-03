@@ -17,9 +17,7 @@ export default function ProtectedRoute({
         const payloadBase64 = token.split(".")[1];
         const decodedPayload = atob(payloadBase64);
         const payload = JSON.parse(decodedPayload);
-
-        console.log(payload.exp * 1000);
-        console.log(Date.now());
+        
         const isExpired = payload.exp * 1000 < Date.now();
         
         if (isExpired) {

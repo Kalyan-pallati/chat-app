@@ -1,10 +1,34 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore, type AuthState } from "../store/authStore";
 import { MessageSquare, Users, LogOut, UserPlus } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const { token, logout } = useAuthStore((state: AuthState) => state);
   const navigate = useNavigate();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+    const fetchPendingRequests = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/users/friends/requests/pending`, {
+                headers: { Authorization: `Bearer ${token}`},
+            })
+            const data = await res.json();
+            setPendingCount(data.length);
+            console.log(data.length);
+        }
+        catch(err){
+            console.error("Failed to load Requests");
+        } finally{
+        }
+        
+    }
+    fetchPendingRequests();
+  }, [token]);
 
   const handleLogout = () => {
     logout();
@@ -38,9 +62,14 @@ export default function Navbar() {
                 <span className="hidden sm:inline">Chats</span>
               </Link>
 
-              <Link to="/requests" className="flex items-center gap-2 text-slate-300 hover:text-white transition text-sm font-medium">
+              <Link to="/requests" className="relative flex items-center gap-2 text-slate-300 hover:text-white transition text-sm font-medium">
                 <UserPlus className="w-4 h-4" />
                 <span className="hidden sm:inline">Requests</span>
+                {pendingCount > 0 && (
+                  <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-md">
+                    {pendingCount}
+                  </span>
+                )}
               </Link>
 
               {/* Divider */}

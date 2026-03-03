@@ -22,7 +22,7 @@ export default function Signup() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showCropper, setShowCropper] = useState(false);
 
-  // Redirect if already logged in
+
   useEffect(() => {
     if (token) navigate("/chat");
   }, [token, navigate]);
