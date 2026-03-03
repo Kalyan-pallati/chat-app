@@ -23,6 +23,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/find"
           element={

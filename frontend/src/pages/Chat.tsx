@@ -46,19 +46,26 @@ export default function Chat() {
       <div>
         <Navbar />
     <div className="flex h-[calc(100vh-64px)] bg-slate-900 overflow-hidden">
-      {/* Left Sidebar */}
+      <div className={`
+            ${selectedFriend ? "hidden md:flex" : "flex"} 
+            w-full md:w-80 shrink-0 border-r border-slate-700 h-full overflow-hidden
+          `}>
       <ChatSidebar 
         onSelectFriend={setSelectedFriend} 
         selectedFriendId={selectedFriend?.id} 
         refreshTrigger={refreshSidebarKey}
       />
-
-      <div className="flex-1 flex flex-col bg-black/20 relative">
+      </div>
+      <div className={`
+            ${selectedFriend ? "flex" : "hidden md:flex"} 
+            flex-1 flex-col bg-black/20 relative min-w-0
+          `}>
         {selectedFriend ? (
           <ChatArea 
             currentUser={currentUser} 
             selectedFriend={selectedFriend}
             onMessageUpdate={handleMessageUpdate}
+            onBack={() => setSelectedFriend(null)}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-slate-500">

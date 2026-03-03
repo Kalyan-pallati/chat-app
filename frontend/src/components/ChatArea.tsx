@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuthStore, type AuthState } from "../store/authStore";
-import { Send } from "lucide-react";
+import { ArrowLeft, Send } from "lucide-react";
 import UserProfileModal from "./UserProfileModal";
 
 interface Message {
@@ -33,12 +33,14 @@ interface ChatAreaProps {
   currentUser: any;
   selectedFriend: UserProfile;
   onMessageUpdate?: () => void;
+  onBack: () => void;
 }
 
 export default function ChatArea({
   currentUser,
   selectedFriend,
   onMessageUpdate,
+  onBack
 }: ChatAreaProps) {
   const token = useAuthStore((state: AuthState) => state.token);
 
@@ -169,6 +171,14 @@ export default function ChatArea({
       
       {/* Header */}
       <div className="p-4 bg-slate-800 border-b border-slate-700 flex items-center gap-3">
+
+        <button 
+          onClick={onBack} 
+          className="md:hidden p-2 -ml-2 text-slate-300 hover:text-white rounded-full hover:bg-slate-700"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+        
         {viewingUser && (
           <UserProfileModal
             user={viewingUser}
@@ -178,7 +188,7 @@ export default function ChatArea({
 
         <div
           onClick={() => setViewingUser(selectedFriend)}
-          className="w-10 h-10 rounded-full bg-slate-800 overflow-hidden cursor-pointer"
+          className="w-10 h-10 rounded-full bg-slate-800 overflow-hidden cursor-pointer border-slate-300 border-2"
         >
           {selectedFriend.profile_picture ? (
             <img

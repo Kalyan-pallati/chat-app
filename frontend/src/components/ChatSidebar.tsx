@@ -51,7 +51,7 @@ export default function ChatSidebar({ onSelectFriend, selectedFriendId, refreshT
   );
 
   return (
-    <div className="w-80 bg-slate-800 border-r border-slate-700 flex flex-col h-full">
+    <div className="w-full bg-slate-800 border-r border-slate-700 flex flex-col h-full">
       <div className="p-4 border-b border-slate-700">
         <h2 className="text-xl font-bold text-white mb-4">Chats</h2>
         <div className="relative">
