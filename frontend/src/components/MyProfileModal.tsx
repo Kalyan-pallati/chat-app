@@ -189,10 +189,10 @@ export default function MyProfileModal({ currentUser, onClose, onProfileUpdate }
             <EditableRow label="Bio" field="bio" value={currentUser.bio} />
 
 
-            <div className=" pt-6">
+            <div className="pt-6 flex justify-center">
             <button 
                 onClick={handleLogout} 
-                className="w-full flex items-center justify-center gap-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200 py-2.5 rounded-lg font-semibold"
+                className="flex items-center gap-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200 px-5 py-2 rounded-lg font-semibold"
               >
                 <LogOut className="w-6 h-6" />
                 <span className="hidden sm:inline">Logout</span>
