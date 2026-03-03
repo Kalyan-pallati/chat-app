@@ -2,7 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlmodel import Session, select, or_, desc
+from sqlmodel import Session, select, or_, desc, func
 from typing import List, Optional
 from app.models.message import Message
 
@@ -35,6 +35,8 @@ class FriendResponse(BaseModel):
     allow_stranger_dms: bool
     last_message_time: Optional[datetime] = None     #Used for sorting friends by recent activity
     last_message_content: Optional[str] = None  #Used to show a preview of last msg in chatsidebar
+    unread_count: Optional[int] = None #Used to show unread count badge in chatsidebar
+
 
 @router.get("/friends", response_model=List[FriendResponse]) 
 def get_my_friends(
@@ -72,6 +74,14 @@ def get_my_friends(
             )
         ).order_by(desc(Message.timestamp)).limit(1)
 
+        unread_count = session.exec(
+            select(func.count(Message.id)).where(
+                (Message.sender_id == f.id) & 
+                (Message.receiver_id == current_user.id) &
+                (Message.is_read == False)
+                )
+            ).one()
+
         last_msg = session.exec(stmt).first()
         friend_responses.append(
             FriendResponse(
@@ -84,7 +94,8 @@ def get_my_friends(
                 profile_picture=f.profile_picture,
                 allow_stranger_dms=f.allow_stranger_dms,
                 last_message_content=str(last_msg.content) if last_msg else None,
-                last_message_time=last_msg.timestamp if last_msg else None
+                last_message_time=last_msg.timestamp if last_msg else None,
+                unread_count=unread_count if unread_count else 0
             )
         )
     friend_responses.sort(

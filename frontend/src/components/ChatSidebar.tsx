@@ -14,6 +14,7 @@ interface Friend {
   profile_picture: string | null;
   last_message_time: string | null;
   last_message_content: string | null;
+  unread_count: number;
 }
 
 interface ChatSidebarProps {
@@ -70,36 +71,55 @@ export default function ChatSidebar({ onSelectFriend, selectedFriendId, refreshT
         {filteredFriends.length === 0 ? (
            <p className="text-slate-500 text-center mt-10 text-sm">No friends found</p>
         ) : (
-          filteredFriends.map((friend) => (
-            <div
-              key={friend.id}
-              onClick={() => onSelectFriend(friend)}
-              className={`p-3 flex items-center gap-3 cursor-pointer hover:bg-slate-700 transition-colors ${
-                selectedFriendId === friend.id ? "bg-slate-700 border-l-4 border-emerald-500" : ""
-              }`}
-            >
-              <div className="w-10 h-10 rounded-full bg-slate-600 flex-shrink-0 overflow-hidden">
-                {friend.profile_picture ? (
+          filteredFriends.map((friend) => {
+            // 👇 1. Check for unread messages
+            const hasUnread = friend.unread_count > 0;
+            const isSelected = selectedFriendId === friend.id;
+
+            return (
+              <div
+                key={friend.id}
+                onClick={() => onSelectFriend(friend)}
+                className={`p-3 flex items-center gap-3 cursor-pointer hover:bg-slate-700 transition-colors ${
+                  isSelected ? "bg-slate-700 border-l-4 border-emerald-500" : "border-l-4 border-transparent"
+                }`}
+              >
+                <div className="w-12 h-12 rounded-full bg-slate-600 flex-shrink-0 overflow-hidden">
+                  {friend.profile_picture ? (
                     <img src={friend.profile_picture} alt={friend.username} className="w-full h-full object-cover"/>
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold">
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold text-lg">
                         {friend.username[0].toUpperCase()}
                     </div>
-                )}
+                  )}
+                </div>
+                
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <div className="flex justify-between items-center mb-1">
+                    <h3 className={`truncate ${hasUnread ? "text-white font-extrabold" : "text-slate-200 font-medium"}`}>
+                        {friend.full_name || friend.username}
+                    </h3>
+                    <span className={`text-[11px] whitespace-nowrap ml-2 ${hasUnread ? "text-emerald-400 font-bold" : "text-slate-400"}`}>
+                        {friend.last_message_time ? formatSidebarTime(friend.last_message_time) : ""}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className={`text-xs truncate pr-2 ${hasUnread ? "text-slate-300 font-bold" : "text-slate-400"}`}>
+                        {friend.last_message_content || "Click to chat"}
+                    </p>
+                    
+                    {hasUnread && (
+                      <div className="bg-emerald-500 text-white text-[10px] font-bold h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full shadow-md">
+                        {friend.unread_count > 99 ? "99+" : friend.unread_count}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
               </div>
-              
-              <div className="flex-1 min-w-0">
-                <h3 className="text-white font-medium truncate">
-                    {friend.full_name || friend.username}
-                </h3>
-                <p className="text-slate-400 text-xs truncate">{friend.last_message_content}</p>
-              </div>
-              <p className="text-slate-400 text-xs truncate">
-                  {friend.last_message_time ? formatSidebarTime(friend.last_message_time) : ""}
-                </p>
-            </div>
-          ))
-        )}
+            );
+          })       
+      )}
       </div>
     </div>
   );
