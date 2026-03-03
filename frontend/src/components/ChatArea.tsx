@@ -170,7 +170,7 @@ export default function ChatArea({
     <div className="flex flex-col h-full bg-slate-900 w-full">
       
       {/* Header */}
-      <div className="p-4 bg-slate-800 border-b border-slate-700 flex items-center gap-3">
+      <div className=" shrink-0 p-4 bg-slate-800 border-b border-slate-700 flex items-center gap-3">
 
         <button 
           onClick={onBack} 
@@ -211,7 +211,7 @@ export default function ChatArea({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {messages.map((msg) => {
           const isMe = msg.sender_id === currentUser.id;
           return (
@@ -263,7 +263,7 @@ export default function ChatArea({
       </div>
 
       {/* Input */}
-      <div className="p-3 bg-slate-800 border-t border-slate-700 flex items-end gap-2">
+      <div className="shrink-0 p-3 bg-slate-800 border-t border-slate-700 flex items-end gap-2">
         <textarea
           ref={textAreaRef}
           rows={1}
