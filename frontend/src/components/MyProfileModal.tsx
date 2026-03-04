@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { X, Edit2, Check, XCircle, Camera, Loader2, User, LogOut } from "lucide-react";
 import { useAuthStore, type AuthState } from "../store/authStore";
-import ImageCropper from "./ImageCropper"; // Reusing your existing cropper!
+import ImageCropper from "./ImageCropper"; 
 import { useNavigate } from "react-router-dom";
 
 interface MyProfileModalProps {
@@ -20,31 +20,28 @@ export default function MyProfileModal({ currentUser, onClose, onProfileUpdate }
     navigate("/");
   };
   
-  // Text Editing States
+
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Image & Cropper States (Directly from your Signup logic)
+
   const [imageUploading, setImageUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showCropper, setShowCropper] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- IMAGE UPLOAD LOGIC ---
-  
-  // 1. User selects a file -> Show Cropper
+
   const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       setShowCropper(true);
-      e.target.value = ""; // Reset input
+      e.target.value = ""; 
     }
   };
 
-  // 2. User finishes cropping -> Upload Blob to server
   const onCropFinished = async (blob: Blob) => {
     setShowCropper(false);
     setImageUploading(true);
@@ -55,23 +52,22 @@ export default function MyProfileModal({ currentUser, onClose, onProfileUpdate }
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/users/updateme/avatar`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` }, // Fetch handles multipart boundary automatically
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
       if (res.ok) {
         const updatedUser = await res.json();
-        onProfileUpdate(updatedUser); // Update Navbar and Modal instantly
+        onProfileUpdate(updatedUser);
       }
     } catch (err) {
       console.error("Failed to upload image", err);
     } finally {
       setImageUploading(false);
-      setPreviewUrl(null); // Cleanup
+      setPreviewUrl(null);
     }
   };
 
-  // --- TEXT UPDATE LOGIC ---
   const handleSaveText = async () => {
     if (!editingField) return;
     setLoading(true);
@@ -96,7 +92,6 @@ export default function MyProfileModal({ currentUser, onClose, onProfileUpdate }
     }
   };
 
-  // Reusable Row Component for Name, Username, Bio
   const EditableRow = ({ label, field, value }: { label: string, field: string, value: string }) => (
     <div className="border-b border-slate-700 py-4">
       <p className="text-xs text-emerald-400 font-bold mb-1">{label}</p>
@@ -183,7 +178,6 @@ export default function MyProfileModal({ currentUser, onClose, onProfileUpdate }
               />
             </div>
 
-            {/* Editable Fields */}
             <EditableRow label="Full Name" field="full_name" value={currentUser.full_name} />
             <EditableRow label="Username" field="username" value={currentUser.username} />
             <EditableRow label="Bio" field="bio" value={currentUser.bio} />
@@ -195,7 +189,7 @@ export default function MyProfileModal({ currentUser, onClose, onProfileUpdate }
                 className="flex items-center gap-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200 px-5 py-2 rounded-lg font-semibold"
               >
                 <LogOut className="w-6 h-6" />
-                <span className="hidden sm:inline">Logout</span>
+                <span className="sm:inline">Logout</span>
               </button>
             </div>
           </div>

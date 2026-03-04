@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useAuthStore, type AuthState } from "../store/authStore";
 import { ArrowLeft, Send } from "lucide-react";
 import UserProfileModal from "./UserProfileModal";
+import { getDateLabel } from "../utils/getDateLabel";
 
 interface Message {
   id: number;
@@ -212,15 +213,28 @@ export default function ChatArea({
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
-        {messages.map((msg) => {
+        {messages.map((msg, index) => {
+          const prevmsg = messages[index - 1];
+
+          const currentDate = getDateLabel(msg.timestamp);
+          const prevDate = prevmsg ? getDateLabel(prevmsg.timestamp) : null;
+
+          const showDateLabel = currentDate !== prevDate;
           const isMe = msg.sender_id === currentUser.id;
           return (
             <div
               key={msg.id}
-              className={`flex ${
-                isMe ? "justify-end" : "justify-start"
-              }`}
+              className="space-y-4"
             >
+
+              {showDateLabel && (
+                <div className="w-full text-center my-2">
+                  <span className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded-full">
+                    {currentDate}
+                  </span>
+                </div>
+              )}
+              <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
               <div
                 className={`max-w-[70%] p-3 rounded-2xl ${
                   isMe
@@ -256,6 +270,7 @@ export default function ChatArea({
 
                 
               </div>
+            </div>
             </div>
           );
         })}
