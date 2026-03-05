@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { X, Edit2, Check, XCircle, Camera, Loader2, User, LogOut } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { X, Edit2, Check, XCircle, Camera, Loader2, User, LogOut, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useAuthStore, type AuthState } from "../store/authStore";
 import ImageCropper from "./ImageCropper"; 
 import { useNavigate } from "react-router-dom";
@@ -11,8 +11,12 @@ interface MyProfileModalProps {
 }
 
 export default function MyProfileModal({ currentUser, onClose, onProfileUpdate }: MyProfileModalProps) {
+
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "available" | "taken" | "checking">('idle');
   const { token, logout } = useAuthStore((state: AuthState) => state);
   const navigate = useNavigate();
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [usernameAvailable, setUsernameAvailable] = useState<string | null>(null);
 
 
     const handleLogout = () => {
@@ -92,27 +96,93 @@ export default function MyProfileModal({ currentUser, onClose, onProfileUpdate }
     }
   };
 
-  const EditableRow = ({ label, field, value }: { label: string, field: string, value: string }) => (
+  useEffect(() => {
+    if(editingField !== "username") return;
+
+    if(editValue.trim() === currentUser.username) {
+      setUsernameStatus("idle");
+      return;
+    }
+    if(editValue.trim() === "") {
+      setUsernameStatus("idle");
+      return;
+    }
+    setUsernameStatus("checking");
+
+    const delayDebounce = setTimeout(async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/users/check-username?username=${editValue.trim()}`);
+        if(res.ok) {
+          const data = await res.json();
+          setUsernameStatus(data.available ? 'available' : 'taken');
+          if(!data.available) {
+            setUsernameError("Username is already taken");
+            setUsernameAvailable(null);
+          } else {
+            setUsernameAvailable("Username is available");
+            setUsernameError(null);
+          }
+        }
+      } catch (err) {
+        console.error("Username Check Failed", err);
+        setUsernameStatus("idle");
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+  },[editValue, editingField, currentUser.username]);
+
+  const EditableRow = ({ label, field, value }: { label: string, field: string, value: string }) => {
+    const isUnchanged = value === editValue.trim();
+    const isUsernameInvalid = field === "username" && usernameStatus === "taken";
+    const canSave = !loading && !isUnchanged && !isUsernameInvalid;
+
+    return (
     <div className="border-b border-slate-700 py-4">
       <p className="text-xs text-emerald-400 font-bold mb-1">{label}</p>
       {editingField === field ? (
-        <div className="flex gap-2">
+        <div>
+        <div className="flex gap-2 relative">
+          <div className="relative flex-1">
           <input 
-            className="bg-slate-900 text-white flex-1 px-3 py-1.5 rounded border border-emerald-500 outline-none focus:ring-1 focus:ring-emerald-500"
+            className={`w-full bg-slate-900 text-white pl-3 pr-10 py-1.5 rounded border outline-none focus:ring-1 ${
+                  isUsernameInvalid ? "border-red-500 focus:ring-red-500" : "border-emerald-500 focus:ring-emerald-500"
+                }`}
             value={editValue} 
             onChange={(e) => setEditValue(e.target.value)} 
             autoFocus 
           />
-          <button onClick={handleSaveText} disabled={loading} className="text-emerald-500 hover:bg-emerald-500/20 p-1.5 rounded transition">
+          
+          {field === "username" && !isUnchanged && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {usernameStatus === "checking" && <Loader2 size={16} className="animate-spin text-slate-400"/>}
+              {usernameStatus === "available" && <CheckCircle2 size={16} className="text-emerald-500"/>}
+              {usernameStatus === "taken" && <AlertCircle size={16} className="text-red-500"/>}
+            </div>
+          )}
+          </div>
+          
+          <button onClick={handleSaveText} disabled={!canSave} 
+          className={`p-1.5 rounded-transition ${
+            (canSave && editValue)? `text-emerald-500 hover:bg-emerald-500/20` : `text-slate-600 cursor-not-allowed`
+          }`}>
             <Check size={20} />
           </button>
-          <button onClick={() => setEditingField(null)} className="text-red-500 hover:bg-red-500/20 p-1.5 rounded transition">
+          <button onClick={() => {setEditingField(null); setUsernameStatus('idle')}} className="text-red-500 hover:bg-red-500/20 p-1.5 rounded transition">
             <XCircle size={20} />
           </button>
         </div>
+        {field === "username" && editingField === "username" && usernameStatus !== "idle" && (
+            <>
+            {usernameError && <p className="pl-1  text-xs text-red-500 mt-1">{usernameError}</p>}
+            {usernameAvailable && <p className="pl-1  text-xs text-emerald-500 mt-1">{usernameAvailable}</p>}
+            </>
+          )}
+          </div>
       ) : (
         <div className="flex justify-between items-center group">
-          <span className="text-white text-lg">{value || `Set your ${label.toLowerCase()}`}</span>
+          <span className="text-white text-lg">
+            {value|| `Set your ${label.toLowerCase()}`}</span>
           <button 
             onClick={() => { setEditingField(field); setEditValue(value || ""); }} 
             className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-white transition"
@@ -120,9 +190,11 @@ export default function MyProfileModal({ currentUser, onClose, onProfileUpdate }
             <Edit2 size={16} />
           </button>
         </div>
-      )}
+      )
+      }
     </div>
-  );
+    );
+  };
 
   return (
     <>

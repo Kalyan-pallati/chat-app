@@ -72,6 +72,15 @@ def update_profile_picture(
     
     return current_user
 
+@router.get("/check-username")
+def check_username_availability(username: str, session: Session = Depends(get_session)):
+    existing = session.exec(
+        select(User).where(User.username == username)
+    ).first()
+    if existing:
+        return {"available": False}
+    return {"available": True}
+
 @router.get("/me", response_model=UserProfileResponse)
 def get_current_user_profile(
     current_user: User = Depends(get_current_user)
