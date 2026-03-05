@@ -1,6 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
 from sqlmodel import Session, select, or_, update
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 import json
 from pydantic import BaseModel
@@ -21,6 +21,10 @@ class MessageResponse(BaseModel):
     content: str
     timestamp: datetime
     is_read:bool
+    reply_to_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True
 
 @router.get("/history/{friend_id}", response_model=List[MessageResponse])
 def get_chat_history(
@@ -35,7 +39,7 @@ def get_chat_history(
         )
     ).order_by(Message.timestamp.asc())
 
-    messages = session.exec(statement)
+    messages = session.exec(statement).all()
     return messages
 
 @router.websocket("/ws/{token}")
@@ -66,6 +70,7 @@ async def websocket_endpoint(
 
             receiver_id = message_data.get("receiver_id")
             content = message_data.get("content")
+            reply_to_id = message_data.get("reply_to_id")
 
             if not receiver_id or not content:
                 continue
@@ -74,6 +79,7 @@ async def websocket_endpoint(
                 sender_id=user_id,
                 receiver_id=receiver_id,
                 content=content,
+                reply_to_id=reply_to_id,
                 timestamp=datetime.utcnow(),
                 is_read=False
             )
@@ -86,6 +92,7 @@ async def websocket_endpoint(
                 "sender_id": user_id,
                 "receiver_id": receiver_id,
                 "content": content,
+                "reply_to_id": reply_to_id,
                 "timestamp": new_message.timestamp.isoformat(),
                 "is_read": False
             }

@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo} from "react";
 import { useAuthStore, type AuthState } from "../store/authStore";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, Reply, X } from "lucide-react";
 import UserProfileModal from "./UserProfileModal";
 import { getDateLabel } from "../utils/getDateLabel";
 
@@ -11,6 +11,7 @@ interface Message {
   receiver_id: number;
   timestamp: string;
   is_read: boolean;
+  reply_to_id?: number | null;
 }
 
 interface UserProfile {
@@ -48,11 +49,17 @@ export default function ChatArea({
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [viewingUser, setViewingUser] = useState<UserProfile | null>(null);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
 
   const socketRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
+  const messagemap = useMemo(() => {
+    const map = new Map<number, Message>();
+    messages.forEach(msg => map.set(msg.id, msg));
+    return map;
+  }, [messages]);
 
   const markAsRead = async () => {
     if(!selectedFriend || !token ) return;
@@ -74,7 +81,7 @@ export default function ChatArea({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Fetch history + socket
+
   useEffect(() => {
     if (!selectedFriend) return;
 
@@ -87,7 +94,7 @@ export default function ChatArea({
         if (res.ok) {
           const data = await res.json();
           setMessages(data);
-
+          console.log(data);
           markAsRead();
         }
       } catch (err) {
@@ -149,10 +156,12 @@ export default function ChatArea({
       JSON.stringify({
         receiver_id: selectedFriend.id,
         content: newMessage.trim(),
+        reply_to_id: replyTo?.id || null,
       })
     );
 
     setNewMessage("");
+    setReplyTo(null);
 
     if (textAreaRef.current) {
       textAreaRef.current.style.height = "auto";
@@ -221,6 +230,8 @@ export default function ChatArea({
 
           const showDateLabel = currentDate !== prevDate;
           const isMe = msg.sender_id === currentUser.id;
+
+          const repliedMessage = msg.reply_to_id ? messagemap.get(msg.reply_to_id) : null;
           return (
             <div
               key={msg.id}
@@ -234,7 +245,14 @@ export default function ChatArea({
                   </span>
                 </div>
               )}
-              <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+              <div className={`flex ${isMe ? "justify-end" : "justify-start"} group relative`}>
+              <button 
+              onClick={() => setReplyTo(msg)}
+              className={`absolute -top-3 opacity-0 group-hover:opacity-100 transition
+                bg-black hover:bg-slate-900 p-1.5 rounded-full shadow
+                ${isMe ? "right-2" : "left-2"}`}>
+                <Reply color="white" size={16}/>
+              </button>
               <div
                 className={`max-w-[70%] p-3 rounded-2xl ${
                   isMe
@@ -242,8 +260,20 @@ export default function ChatArea({
                     : "bg-slate-700 text-slate-200 rounded-bl-none"
                 }`}
               >
-                <p className="whitespace-pre-wrap break-words">
-                  {msg.content}
+                  {repliedMessage && (
+                    <div className="mb-2 p-2 rounded bg-black/20 border-l-4 border-emerald-400 text-sm opacity-90">
+                      <p className="text-[11px] font-bold text-emerald-400 mb-0.5">
+                        {repliedMessage?.sender_id === currentUser.id ? "You" : selectedFriend.full_name || selectedFriend.username}
+                      </p>
+                      <p className="truncate text-xs text-slate-200">
+                        {repliedMessage.content.length > 30
+                          ? repliedMessage.content.slice(0, 30) + "..."
+                          : repliedMessage.content}
+                      </p>
+                    </div>
+                  )}
+                <div className="whitespace-pre-wrap break-words">
+                  <p>{msg.content}</p>
                   <div className="flex items-center justify-end gap-1 mt-1">
                   <span className="text-[10px] opacity-70">
                     {new Date(
@@ -266,7 +296,7 @@ export default function ChatArea({
                     </span>
                   )}
                   </div>
-                  </p>
+                  </div>
 
                 
               </div>
@@ -276,6 +306,23 @@ export default function ChatArea({
         })}
         <div ref={messagesEndRef} />
       </div>
+
+      {replyTo && (
+        <div className="bg-black/50 px-4 py-2 border-l-4 border-emerald-500 flex justify-between items-center rounded-t-lg mx-4 mt-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-emerald-500 text-xs font-bold mb-1">
+              Replying to {replyTo.sender_id === currentUser.id ? "yourself" : selectedFriend.full_name || selectedFriend.username}
+            </p>
+            <p className="text-slate-300 text-sm truncate">{replyTo.content}</p>
+          </div>
+          <button 
+            onClick={() => setReplyTo(null)} 
+            className="text-slate-400 hover:text-white p-2 rounded-full hover:bg-slate-700 transition ml-2"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
 
       {/* Input */}
       <div className="shrink-0 p-3 bg-slate-800 border-t border-slate-700 flex items-end gap-2">

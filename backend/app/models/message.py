@@ -9,3 +9,4 @@ class Message(SQLModel, table=True):
     is_read: bool = Field(default=False) 
     sender_id: int = Field(foreign_key="user.id")
     receiver_id: int = Field(foreign_key="user.id")
+    reply_to_id: Optional[int] = Field(default=None, foreign_key="message.id")
