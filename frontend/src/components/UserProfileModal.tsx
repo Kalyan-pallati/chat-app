@@ -8,7 +8,7 @@ export default function UserProfileModal({ user, onClose}: UserProfileModalProps
     if(!user) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop:blur-sm p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop:blur-sm p-4" onClick={onClose}>
             <div className="bg-slate-800 w-full max-w-sm rounded-2xl border border-slate-700 shadow-2xl overflow-hidden relative" onClick={(e) => e.stopPropagation()}>
                 <div className="bg-slate-800 w-full max-w-sm sm:max-w-md rounded-2xl border border-slate-700 shadow-2xl overflow-y-auto max-h-[95vh] relative animate-in fade-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}>

@@ -5,12 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.models.user import User
 from app.models.friend import FriendRequest
 from app.models.message import Message
+from app.models.group import Group, GroupMember
 
 from app.db.session import engine
 from app.api.auth import router as auth_router
 from app.api.users import router as user_router
 from app.api.friends import router as friend_router
 from app.api.chat import router as chat_router
+from app.api.group import router as group_router
 
 app = FastAPI(title="Chat Application")
 
@@ -29,6 +31,7 @@ app.include_router(auth_router, prefix="/auth")
 app.include_router(user_router, prefix="/users")
 app.include_router(friend_router, prefix="/users/friends")
 app.include_router(chat_router,prefix="/chat",tags=["chat"])
+app.include_router(group_router, prefix="/groups", tags=["groups"])
 
 @app.on_event("startup")
 def on_startup():

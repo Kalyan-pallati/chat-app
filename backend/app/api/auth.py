@@ -23,7 +23,7 @@ def signup(
     password: str = Form(...),
     full_name: str = Form(...),
     gender: str = Form("other"),
-    file: UploadFile = File(None), # Optional: User might not upload a pic
+    file: UploadFile = File(None), # Optional: User might not upload a pfp
     session: Session = Depends(get_session)):
     existing = session.exec(
         select(User).where(User.username == username)

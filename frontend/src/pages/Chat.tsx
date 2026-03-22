@@ -72,7 +72,7 @@ export default function Chat() {
             <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-4">
                <span className="text-4xl">👋</span>
             </div>
-            <p>Select a friend to start chatting</p>
+            <p>Start chatting</p>
           </div>
         )}
       </div>

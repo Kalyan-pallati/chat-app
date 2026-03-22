@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import { useAuthStore, type AuthState } from "../store/authStore";
 import { formatSidebarTime } from "../utils/formatSidebar";
+import CreateGroupModal from "./CreateGroupModal";
 
 interface Friend {
   id: number;
@@ -27,6 +28,7 @@ export default function ChatSidebar({ onSelectFriend, selectedFriendId, refreshT
   const token = useAuthStore((state: AuthState) => state.token);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [search, setSearch] = useState("");
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -111,6 +113,12 @@ export default function ChatSidebar({ onSelectFriend, selectedFriendId, refreshT
     <div className="w-full bg-slate-800 border-r border-slate-700 flex flex-col h-full">
       <div className="p-4 border-b border-slate-700">
         <h2 className="text-xl font-bold text-white mb-4">Chats</h2>
+        <button 
+          onClick={() => setShowCreateGroup(true)}
+          className="p-1.5 bg-slate-700 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400 rounded-lg transition"
+        >
+          <Users size={18} />
+        </button>
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
           <input
@@ -128,7 +136,7 @@ export default function ChatSidebar({ onSelectFriend, selectedFriendId, refreshT
            <p className="text-slate-500 text-center mt-10 text-sm">No friends found</p>
         ) : (
           filteredFriends.map((friend) => {
-            // 👇 1. Check for unread messages
+            //  Check for unread messages
             const hasUnread = friend.unread_count > 0;
             const isSelected = selectedFriendId === friend.id;
 
@@ -177,6 +185,15 @@ export default function ChatSidebar({ onSelectFriend, selectedFriendId, refreshT
           })       
       )}
       </div>
+      {showCreateGroup && (
+      <CreateGroupModal 
+        onClose={() => setShowCreateGroup(false)} 
+        onGroupCreated={(newGroup) => {
+          // Temporarily refresh the page or manually add it to the state to see it!
+          window.location.reload(); 
+        }} 
+      />
+    )}
     </div>
   );
 }
